@@ -184,15 +184,39 @@
         document.querySelector('#text3').readOnly = true;
         document.querySelector('#text2').readOnly = true;
 
+        let lastText1 = null;
+        let lastText4 = null;
         setInterval(() => {
 
+            let t1;
+            t1 = document.querySelector('#text1').value;
 
-            document.querySelector('#text3').value = formater1(document.querySelector('#text1').value);
+
+            let m = false;
+            let n = false;
+            if (t1 !== lastText1) {
+                m = true;
+                n = true;
+                lastText1 = t1;
+                document.querySelector('#text3').value = formater1(t1);
+            }
+
+            let t4;
+            t4 = document.querySelector('#text4').value;
+
+            if (t1 !== lastText4) {
+                m = true;
+                lastText4 = t4;
+            }
 
 
-            document.querySelector('#text2').value = formater2(document.querySelector('#text1').value, document.querySelector('#text4').value);
+            if (m) {
+                document.querySelector('#text2').value = formater2(t1, t4);
+            }
 
-            document.querySelector('#text4').placeholder = document.querySelector('#text3').value;
+            if (n) {
+                document.querySelector('#text4').placeholder = document.querySelector('#text3').value;
+            }
 
         }, 100)
 
