@@ -1,0 +1,202 @@
+<html>
+
+<head>
+    <style>
+        #container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+        }
+
+        #container>* {
+
+            height: 40vh;
+        }
+
+        #text1 {
+
+            color: rgb(17, 11, 82);
+        }
+
+        #text4 {
+
+            color: rgb(13, 92, 51);
+        }
+
+        #text3 {
+            color: rgb(157, 16, 16);
+            background-color: rgb(247, 255, 239);
+        }
+
+        #text2 {
+            color: rgb(156, 109, 22);
+            background-color: rgb(239, 243, 255);
+        }
+
+        #text1::before {
+            content: 'Original';
+            display: block;
+        }
+
+        div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        div>textarea {
+
+            flex-grow: 1;
+            font-weight: normal;
+        }
+
+        div {
+            font-weight: 600;
+            padding: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div>Input:<textarea id="text1"></textarea></div>
+        <div>Output:<textarea id="text2"></textarea></div>
+        <div>Extracted for Translation:<textarea id="text3"></textarea></div>
+        <div>Input from Tranlated Result:<textarea id="text4"></textarea></div>
+
+    </div>
+
+    <script>
+        document.querySelector('#text1').value = `
+    <string name="app_name">屏幕截图磁贴</string>
+    <string name="app_name_long">屏幕截图磁贴 (NoRoot)</string>
+    <string name="tile_label">屏幕截图</string>
+    <string name="tile_floating">浮动屏幕截图按钮</string>
+    <string name="tile_floating_label">浮动</string>
+    <string name="tile_floating_subtitle">屏幕截图按钮</string>
+    <string name="title_delay">延迟</string>
+    <string name="more_setting">更多设置</string>
+    <string name="open_settings">打开设置</string>
+    <string name="floating_button_settings">浮动按钮设置</string>
+    <string name="left_screenshot_right_menu">左：屏幕截图，右：设置</string>
+    <string name="partial_screenshot">选择区域</string>
+    <string name="file_format">文件格式</string>
+    <string name="setting_delay_entry_default">立即</string>
+    <string name="setting_delay_entry_1s">1 秒</string>
+    <string name="setting_delay_entry_2s">2 秒</string>
+    <string name="setting_delay_entry_5s">5 秒</string>
+    <string name="show_count_down">显示倒计时</string>
+    <string name="use_native_screenshot">使用原生屏幕截图方式</string>
+    <string name="use_native_screenshot_summary">模拟 home + 电源键按压</string>
+    <string name="use_native_screenshot_unsupported">需要 Android 9 Pie</string>
+    <string name="use_native_screenshot_unavailable">无障碍服务已禁用</string>`;
+
+
+        function pf(i) {
+            let s = '';
+            // if(i<26) s = String.fromCharCode('a'.charCodeAt(0)+i)
+            let m = [];
+            while (i >= 26) {
+                let k = i % 26;
+                i = (i - k) / 26;
+                m.push(k);
+            }
+            m.push(i);
+
+
+
+            return m.reverse().map((j, idx) => String.fromCharCode('a'.charCodeAt(0) + (idx === 0 && m.length > 1 ? j - 1 : j))).join('');
+        }
+
+        function formater1(text) {
+
+
+            text = text.replace(/\r\n|\n\r|\r/g, '\n');
+            let lines = text.split(/\n/);
+            lines = lines.map(x => {
+
+                let y = x.replace(/^\s*<(\w+)[^>]*>([\s\S]*)<\/\1>\s*$/, (_, tag, t) => {
+                    return t;
+                }).trim();
+
+                if (y.length == 0) return '';
+                if (x.split(y).length != 2) y = x;
+                if (y == x) return '';
+                return y;
+
+            }
+            )
+
+            return lines.map((x, idx) => {
+                if (!x) return '';
+
+                return `${pf(idx)}. ${x}`;
+
+            }).join('\n').trim().replace(/\n{3,}/g, '\n\n');
+
+
+        }
+
+
+        function formater2(text, values) {
+
+
+            text = text.replace(/\r\n|\n\r|\r/g, '\n');
+            let lines = text.split(/\n/);
+            let olines = lines;
+            lines = lines.map(x => {
+
+                let y = x.replace(/^\s*<(\w+)[^>]*>([\s\S]*)<\/\1>\s*$/, (_, tag, t) => {
+                    return t;
+                }).trim();
+
+                if (y.length == 0) return '';
+                if (x.split(y).length != 2) y = x;
+                if (y == x) return '';
+                return y;
+
+            }
+            )
+
+            let mp = new Map();
+
+            values.split(/[\r\n]+/).map(x => {
+                let pi = x.indexOf('. ');
+                if (pi < 0) return;
+                mp.set(x.substring(0, pi), x.substring(pi + 2));
+            })
+
+            return lines.map((x, idx) => {
+
+                let replacement = mp.get(`${pf(idx)}`);
+                if (replacement) {
+
+                    return olines[idx].replace(x, replacement);
+                }
+
+                return olines[idx];
+
+            }).join('\n');
+
+
+        }
+
+        document.querySelector('#text3').readOnly = true;
+        document.querySelector('#text2').readOnly = true;
+
+        setInterval(() => {
+
+
+            document.querySelector('#text3').value = formater1(document.querySelector('#text1').value);
+
+
+            document.querySelector('#text2').value = formater2(document.querySelector('#text1').value, document.querySelector('#text4').value);
+
+            document.querySelector('#text4').placeholder = document.querySelector('#text3').value;
+
+        }, 100)
+
+    </script>
+</body>
+
+</html>
